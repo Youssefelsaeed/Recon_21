@@ -1,0 +1,18 @@
+# Output & local tools
+recon_results/
+tools/
+*.log
+*.json
+*.tmp
+
+# Go build / bin
+bin/
+$HOME/go/bin/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
