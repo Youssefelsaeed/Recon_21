@@ -88,16 +88,31 @@ echo "  ## Combined unique subdomains: $( [ -f "$OUTDIR/all_subs.txt" ] && wc -l
 echo >> "$REPORT"
 
 # -------------------------
-# Live host probing (httpx)
+# Live host probing (nmap host discovery)
 # -------------------------
-echo -e "${GREEN}[+] Probing live hosts (httpx)${NC}"
+echo -e "${GREEN}[+] Probing live hosts (nmap host discovery)${NC}"
 echo "#LiveHosts:" >> "$REPORT"
-if need httpx && [ -s "$OUTDIR/all_subs.txt" ]; then
-  httpx -silent -l "$OUTDIR/all_subs.txt" -mc 200,201,301,302,401,403 -timeout 8 -retries 1 -threads 150 > "$OUTDIR/live_urls.txt" || true
-  awk -F/ 'NF>=3 {print $3}' "$OUTDIR/live_urls.txt" | sort -u > "$OUTDIR/live_hosts.txt" || true
-  [ -s "$OUTDIR/live_urls.txt" ] && sed 's/^/    /' "$OUTDIR/live_urls.txt" >> "$REPORT" || echo "    (no live hosts found)" >> "$REPORT"
+if need nmap && [ -s "$OUTDIR/all_subs.txt" ]; then
+  # Use nmap for host discovery (-sn flag)
+  nmap -sn -T4 -iL "$OUTDIR/all_subs.txt" -oG "$OUTDIR/nmap_host_discovery.txt" >/dev/null 2>&1 || true
+  
+  # Extract live hosts from nmap output
+  grep "Status: Up" "$OUTDIR/nmap_host_discovery.txt" | awk '{print $2}' > "$OUTDIR/live_hosts.txt" || true
+  
+  # Create URLs from live hosts (assuming HTTP)
+  if [ -s "$OUTDIR/live_hosts.txt" ]; then
+    while read -r host; do
+      echo "http://$host" >> "$OUTDIR/live_urls.txt"
+      echo "https://$host" >> "$OUTDIR/live_urls.txt"
+    done < "$OUTDIR/live_hosts.txt"
+    
+    # Report the live hosts
+    sed 's/^/    /' "$OUTDIR/live_hosts.txt" >> "$REPORT"
+  else
+    echo "    (no live hosts found)" >> "$REPORT"
+  fi
 else
-  echo "    (httpx missing or no subdomains)" >> "$REPORT"
+  echo "    (nmap missing or no subdomains)" >> "$REPORT"
 fi
 echo >> "$REPORT"
 
