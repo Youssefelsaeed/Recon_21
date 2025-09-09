@@ -7,7 +7,6 @@ Collects **subdomains, directories, ports, URLs, JS files, CORS checks, and vuln
 
 ## 🚀 Features
 - Subdomain enumeration: `subfinder`, `assetfinder`, `amass`
-- Live probe: `httpx`
 - Directory brute force: `ffuf`
 - Port scanning: `nmap` (fast-first strategy)
 - URL collection: `gau`, `waybackurls`
